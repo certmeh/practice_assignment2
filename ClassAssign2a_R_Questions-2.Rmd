@@ -1,0 +1,202 @@
+---
+title: "Class Assignment 2a (R & SQL)"
+date: "2023-11-04"
+output: html_document
+---
+
+## Student Details
+
+-   Student Name: `<Insert Your Name Here>`
+-   Student ID: `<Insert Your Student Number Here>`
+
+## About the Assignment
+
+This is the ***R*** part of ST2195 Class Assignment 2, which covers topics up to Block 3 materials of the ST2195 Programming for Data Science course.
+
+For this assignment, we will use the data from the R package, nycflights13, which contains airline on-time data for all flights departing New York City (NYC) in 2013. It also includes useful metadata on airlines, airports, weather, and planes. You may refer to this [nycflights13 package link](https://cran.r-project.org/web/packages/nycflights13/nycflights13.pdf) for more details about the data columns.
+
+#### Instructions:
+
+1.  Set your current working directory for the database.
+
+2.  Run the starter code to create/store the database in your current working directory
+
+3.  From this point, you are ready to perform the queries. Please note that there are two sections: (i) queries using DBI; and (ii) queries using dplyr. For each of the sections, please follow these steps:
+
+    -   At the beginning of each section, run the code to connect to the database (as well as perform other operations).
+
+    -   Then, address each query by providing your R and/or SQL code to address the task in the respective code cells.
+
+    -   At the end of each section, remember to run the code to disconnect to the database.
+
+## Set Your Current Working Directory
+
+This will be the location where you wish to create/store the database.
+
+Example: Suppose you create a directory "ClassAssignment2" under your "D:" drive's root directory. The full path will be "D:/ClassAssignment2" and you can run the following command to change the working directory -- `setwd("D:/ClassAssignment2")`.
+
+Alternatively, you can navigate to "Session -\> Set Working Directory -\> Choose Directory" to select your working directory in RStudio.
+
+```{r}
+# -- amend actual path and run this step --
+
+# Set your current working directory using setwd() function
+# setwd("D:/ClassAssignment2")  #uncomment and run after amending to actual path
+
+# Alternatively, you can navigate to "Session -> Set Working Directory -> Choose Directory" to select your working directory in RStudio.
+
+```
+
+## Create/Store the Database (One-Time)
+
+Please ensure you have the R packages "RSQLite" and "nycflights13" installed. If not, you can run the following in the console to do so.
+
+-   `install.packages("RSQLite")`
+-   `install.packages("nycflights13")`
+
+Run the following R code chunk once to create/store the database.
+
+```{r}
+# -- run this code --
+
+# Load required libraries
+# install.packages("RSQLite")  #if needed
+# install.packages("nycflights13")  #if needed
+library(DBI)
+library(nycflights13)
+
+# Remove any existing nycflights13 database from your working directory
+if (file.exists("nycflights13.db"))
+  file.remove("nycflights13.db")
+
+# Connect to SQLite driver for nycflights13 database
+conn <- dbConnect(RSQLite::SQLite(), "nycflights13.db")
+
+# Using the data from the nycflights13 R package, we create corresponding tables in the database (i.e., flights, airports, planes, airlines, and weather). 
+dbWriteTable(conn, "flights", nycflights13::flights)
+dbWriteTable(conn, "airports", nycflights13::airports)
+dbWriteTable(conn, "planes", nycflights13::planes)
+dbWriteTable(conn, "airlines", nycflights13::airlines)
+dbWriteTable(conn, "weather", nycflights13::weather)
+
+# Unload the nycflights13 package once the process is completed
+# search()
+detach("package:nycflights13")
+
+# Close the SQLite connection for nycflights3 database
+dbDisconnect(conn)
+
+```
+
+## Section 1 -- SQL Queries using **DBI** (total 32.5 marks)
+
+```{r}
+# Connect to the database and have a quick view of the tables contained
+# -- run this code at the beginning of section --
+
+conn <- dbConnect(RSQLite::SQLite(), "nycflights13.db")
+
+dbListTables(conn)
+
+dbListFields(conn,"flights")
+dbListFields(conn, "airlines")
+dbListFields(conn, "planes")
+dbListFields(conn, "airports")
+dbListFields(conn, "weather")
+
+```
+
+### Query 1.1 (7 marks)
+
+```{r}
+# Task - Display the rows in the weather table with wind speed greater than 30 mph and visibility of less than 1 mile.
+# -- insert your code below this line --
+
+```
+
+### Query 1.2 (7 marks)
+
+```{r}
+# Task  - How many flight departures were there in 2013 for each of the origin airports? Show the origin and number of flights.
+# -- insert your code below this line --
+
+```
+
+### Query 1.3 (8.5 marks)
+
+```{r}
+# Task - Which months had the most number of flights that departed more than 2 hours later than scheduled? Show the top 3 months and their corresponding number of affected flights.
+# -- insert your code below this line --
+
+```
+
+### Query 1.4 (10 marks)
+
+```{r}
+# Task - What were the most frequently used plane models for flights from NYC in 2013 (top 5)? Show the plane's model and seat capacity, as well as the corresponding number of flights
+# -- insert your code below this line --
+
+```
+
+```{r}
+# IMPORTANT - Disconnect from the database
+# -- run this code at the end of section --
+
+dbDisconnect(conn)
+```
+
+## Section 2 -- SQL Queries using **dplyr** (total 32.5 marks)
+
+```{r}
+# Connect to the database and create references to tables
+# -- run this code at the beginning of section --
+
+conn <- dbConnect(RSQLite::SQLite(), "nycflights13.db")
+
+library(dplyr)
+planes_db <- tbl(conn, "planes")
+flights_db <- tbl(conn, "flights")
+airlines_db <- tbl(conn, "airlines")
+airports_db <- tbl(conn, "airports")
+weather_db <- tbl(conn, "weather")
+
+```
+
+### Query 2.1 (7 marks)
+
+```{r}
+# Task - Display the rows in the weather table with wind speed greater than 30 mph and visibility of less than 1 mile.
+# -- insert your code below this line --
+
+```
+
+### Query 2.2 (7 marks)
+
+```{r}
+# Task  - How many flight departures were there in 2013 for each of the origin airports? Show the origin and number of flights.
+# -- insert your code below this line --
+
+```
+
+### Query 2.3 (8.5 marks)
+
+```{r}
+# Task - Which months had the most number of flights that departed more than 2 hours later than scheduled? Show the top 3 months and their corresponding number of affected flights.
+# -- insert your code below this line --
+
+```
+
+### Query 2.4 (10 marks)
+
+```{r}
+# Task - What were the most frequently used plane models for flights from NYC in 2013 (top 5)? Show the plane's model and seat capacity, as well as the corresponding number of flights
+# -- insert your code below this line --
+
+```
+
+```{r}
+# IMPORTANT - Disconnect from the database
+# -- run this code at the end of section --
+
+dbDisconnect(conn)
+```
