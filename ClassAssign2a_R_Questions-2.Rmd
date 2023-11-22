@@ -112,6 +112,8 @@ dbListFields(conn, "weather")
 # Task - Display the rows in the weather table with wind speed greater than 30 mph and visibility of less than 1 mile.
 # -- insert your code below this line --
 
+dbGetQuery(conn, "SELECT *            FROM weather             WHERE wind_speed > 30 and visib < 1")
+        
 ```
 
 ### Query 1.2 (7 marks)
@@ -119,6 +121,15 @@ dbListFields(conn, "weather")
 ```{r}
 # Task  - How many flight departures were there in 2013 for each of the origin airports? Show the origin and number of flights.
 # -- insert your code below this line --
+query <- "
+  SELECT origin, COUNT(*) AS num_departures
+  FROM flights
+  WHERE year = 2013
+  GROUP BY origin"
+result <- dbGetQuery(conn, query)
+
+# Print the result
+print(result)
 
 ```
 
@@ -128,6 +139,19 @@ dbListFields(conn, "weather")
 # Task - Which months had the most number of flights that departed more than 2 hours later than scheduled? Show the top 3 months and their corresponding number of affected flights.
 # -- insert your code below this line --
 
+query <- "
+  SELECT month, COUNT(*) AS num_delays
+  FROM flights
+  WHERE dep_delay > 2
+  GROUP BY MONTH
+  "
+result <- dbGetQuery(conn, query)
+top_3_months <- head(result[order(result$num_delays, decreasing = TRUE), ], 3)
+
+print(top_3_months)
+
+
+
 ```
 
 ### Query 1.4 (10 marks)
@@ -135,7 +159,21 @@ dbListFields(conn, "weather")
 ```{r}
 # Task - What were the most frequently used plane models for flights from NYC in 2013 (top 5)? Show the plane's model and seat capacity, as well as the corresponding number of flights
 # -- insert your code below this line --
+library(DBI)
 
+# Replace the placeholder values with your actual table and column names
+query <- "
+  SELECT model AS model, seats AS Seats, COUNT(*) AS Total
+  FROM planes join flights ON flights.tailnum == planes.tailnum
+  GROUP BY Model
+  ORDER BY Total DESC
+  LIMIT 5
+  
+    "
+
+result <- dbGetQuery(conn, query)
+
+print(result)
 ```
 
 ```{r}
@@ -168,6 +206,10 @@ weather_db <- tbl(conn, "weather")
 # Task - Display the rows in the weather table with wind speed greater than 30 mph and visibility of less than 1 mile.
 # -- insert your code below this line --
 
+result <- weather%>%filter(wind_speed > 30 & visib < 1)
+print(result)
+
+
 ```
 
 ### Query 2.2 (7 marks)
@@ -176,6 +218,17 @@ weather_db <- tbl(conn, "weather")
 # Task  - How many flight departures were there in 2013 for each of the origin airports? Show the origin and number of flights.
 # -- insert your code below this line --
 
+origin <- 
+  flights%>%filter(year == 2013)%>%
+  group_by(origin)%>%
+  summarise(num_flights=n())  
+
+print(origin)
+
+  
+
+
+
 ```
 
 ### Query 2.3 (8.5 marks)
@@ -183,6 +236,19 @@ weather_db <- tbl(conn, "weather")
 ```{r}
 # Task - Which months had the most number of flights that departed more than 2 hours later than scheduled? Show the top 3 months and their corresponding number of affected flights.
 # -- insert your code below this line --
+most <- flights%>%
+  filter(dep_delay > 2)%>%
+  group_by(month)%>% 
+  summarise(num_flights=n())%>%
+  arrange(num_flights)%>%
+  slice_head(n=3)
+
+print(most)
+
+  
+
+
+
 
 ```
 
@@ -191,6 +257,17 @@ weather_db <- tbl(conn, "weather")
 ```{r}
 # Task - What were the most frequently used plane models for flights from NYC in 2013 (top 5)? Show the plane's model and seat capacity, as well as the corresponding number of flights
 # -- insert your code below this line --
+frequent <- flights %>%
+  group_by(tailnum)%>%
+  summarise(number_of_flights = n())%>%
+  arrange(desc(number_of_flights))
+
+plane_data <- merge(frequent, plane, by.x = "tailnum", by.y = "tailnum")%>%
+  top_n(5)%>%
+  select(model, seats, number_of_flights)
+
+print(plane_data)
+
 
 ```
 
